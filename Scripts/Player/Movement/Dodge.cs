@@ -3,6 +3,7 @@ using UnityEngine;
 public class Dodge : MonoBehaviour
 {
     [SerializeField] Movement Movement;
+    [SerializeField] Attack Attack;
 
     private float dodgeDistance = 4f; 
     private float dodgeTime = .3f; 
@@ -37,8 +38,10 @@ public class Dodge : MonoBehaviour
 
     private void HandleDodge()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && !isDodging && canDodge)
+        if (Input.GetKey(KeyCode.Space) && !isDodging && canDodge)
         {
+            if (Attack.IsAttacking(attacking: true)) return;
+
             isDodging = true;
             canDodge = false;
 
