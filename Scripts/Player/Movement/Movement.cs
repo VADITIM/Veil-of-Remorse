@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class Movement : MonoBehaviour
 {
+    [SerializeField] Attack Attack;
+    
     private Rigidbody2D rb;  
 
     public float speed = 5f;    
@@ -41,7 +43,14 @@ public class Movement : MonoBehaviour
 
     void FixedUpdate()
     {
-        rb.velocity = movement * speed;
+        if (Attack.IsAttacking(attacking: true))
+        {
+            rb.velocity = movement * speed / 2;
+        }
+        else
+        {
+            rb.velocity = movement * speed;
+        }
     }
 
     public bool IsMoving()
