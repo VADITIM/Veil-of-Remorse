@@ -32,7 +32,7 @@ public class Dodge : MonoBehaviour
             float elapsedTime = Time.time - (dodgeTimer - dodgeTime);
             float t = Mathf.Clamp01(elapsedTime / dodgeTime);
             Vector2 targetPosition = startPosition + (dodgeDirection * dodgeDistance);
-            transform.position = Vector2.Lerp(startPosition, targetPosition, t);
+            transform.position = new Vector3(Vector2.Lerp(startPosition, targetPosition, t).x, Vector2.Lerp(startPosition, targetPosition, t).y, transform.position.z);
         }
     }
 
@@ -60,7 +60,7 @@ public class Dodge : MonoBehaviour
         if (isDodging && Time.time >= dodgeTimer)
         {
             Vector2 targetPosition = startPosition + (dodgeDirection * dodgeDistance);
-            transform.position = targetPosition;
+            transform.position = new Vector3(targetPosition.x, targetPosition.y, transform.position.z);
             isDodging = false;
         }
     }
