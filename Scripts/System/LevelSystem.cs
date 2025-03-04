@@ -7,6 +7,11 @@ public class LevelSystem : MonoBehaviour
     private int experienceToNextLevel = 100;
     
     public int Level => level;
+    
+    public int GetExperience()
+    {
+        return experience;
+    }
 
     public void GainExperience(int amount)
     {
@@ -15,6 +20,17 @@ public class LevelSystem : MonoBehaviour
         if (experience >= experienceToNextLevel)
         {
             LevelUp();
+        }
+    }
+    
+    void Start()
+    {
+        PlayerData data = SaveSystem.LoadGame();
+        if (data != null)
+        {
+            level = data.level;
+            experience = data.experience;
+            transform.position = new Vector3(data.checkpointX, data.checkpointY, 0);
         }
     }
 

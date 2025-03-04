@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class RespawnManager : MonoBehaviour
 {
     public static RespawnManager Instance { get; private set; }
-    [SerializeField] private List<GameObject> enemyPrefabs; // Assign all enemy prefabs in Inspector
+    [SerializeField] private List<GameObject> enemyPrefabs; 
 
     public GameObject FindPrefabForEnemy(EnemyBase enemy)
     {
