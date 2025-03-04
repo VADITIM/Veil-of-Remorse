@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class Dodge : MonoBehaviour
 {
+    [SerializeField] Player Player;
     [SerializeField] Movement Movement;
     [SerializeField] Attack Attack;
 
@@ -19,7 +20,9 @@ public class Dodge : MonoBehaviour
 
     void Start()
     {
+        Player = GetComponent<Player>();
         Movement = GetComponent<Movement>();
+        Attack = GetComponent<Attack>();
     }
 
     void Update()
@@ -38,12 +41,15 @@ public class Dodge : MonoBehaviour
 
     private void HandleDodge()
     {
+        
         if (Input.GetKey(KeyCode.Space) && !isDodging && canDodge)
         {
+            if (!Movement.isMoving) return;
             if (Attack.IsAttacking(attacking: true)) return;
 
             isDodging = true;
             canDodge = false;
+            Player.canTakeDamage = false;
 
             Rigidbody2D rb = Movement.GetComponent<Rigidbody2D>();
             dodgeDirection = rb.velocity.normalized;
@@ -62,6 +68,7 @@ public class Dodge : MonoBehaviour
             Vector2 targetPosition = startPosition + (dodgeDirection * dodgeDistance);
             transform.position = new Vector3(targetPosition.x, targetPosition.y, transform.position.z);
             isDodging = false;
+            Player.canTakeDamage = true;
         }
     }
 
