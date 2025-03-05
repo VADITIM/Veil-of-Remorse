@@ -24,7 +24,6 @@ public class InvincibilityFrames : MonoBehaviour
             {
                 Player.damageTaken = false;
                 cooldownTimer = cooldown;
-                Debug.LogWarning("Player is no longer invincible");
             }
         }
         else

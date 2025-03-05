@@ -39,6 +39,8 @@ public class Attack : MonoBehaviour
 
     void Start()
     {
+        Dodge = FindObjectOfType<Dodge>();
+        
         parentTransform = transform.parent;
         if (normalAttack1Hitbox != null) normalAttack1Hitbox.enabled = false;
         if (normalAttack2Hitbox != null) normalAttack2Hitbox.enabled = false;
