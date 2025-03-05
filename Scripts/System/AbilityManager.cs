@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class AbilityManager : MonoBehaviour
 {
+    LevelSystem LevelSystem;
+    
     [SerializeField] private GameObject abilityOne;
     [SerializeField] private GameObject abilityTwo;
     [SerializeField] private GameObject abilityThree;
@@ -12,6 +14,8 @@ public class AbilityManager : MonoBehaviour
     
     void Start()
     {
+        LevelSystem = FindObjectOfType<LevelSystem>();
+        
         abilityOneUnlocked = SaveSystem.LoadBool("AbilityOneUnlocked");
         abilityTwoUnlocked = SaveSystem.LoadBool("AbilityTwoUnlocked");
         abilityThreeUnlocked = SaveSystem.LoadBool("AbilityThreeUnlocked");
@@ -22,6 +26,16 @@ public class AbilityManager : MonoBehaviour
     void Update()
     {
         UpdateAbilityStates();
+    }
+    
+    public void LoadSavedAbilities(PlayerData data)
+    {
+        abilityOneUnlocked = data.abilityOneUnlocked;
+        abilityTwoUnlocked = data.abilityTwoUnlocked;
+        abilityThreeUnlocked = data.abilityThreeUnlocked;
+
+        UpdateAbilityStates();
+        Debug.Log("\nAbilities reset to last save state.");
     }
 
     private void UpdateAbilityStates()
@@ -58,19 +72,4 @@ public class AbilityManager : MonoBehaviour
         SaveSystem.SaveBool("AbilityThreeUnlocked", true);
     }
 
-    public void IsAbilityUnlocked()
-    {
-        if (abilityOneUnlocked)
-        {
-            Debug.Log("Ability One Unlocked");
-        }
-        if (abilityTwoUnlocked)
-        {
-            Debug.Log("Ability Two Unlocked");
-        }
-        if (abilityThreeUnlocked)
-        {
-            Debug.Log("Ability Three Unlocked");
-        }
-    }
 }
