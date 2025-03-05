@@ -1,15 +1,20 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class UIManager : MonoBehaviour
 {
+    Hotkeys Hotkeys;
+    
     [SerializeField] private GameObject escapeMenu;
     [SerializeField] private GameObject levelUpMenu;
     
+    void Start()
+    {
+        Hotkeys = FindObjectOfType<Hotkeys>();
+    }
+
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Hotkeys.HandleEscMenu())
         {
             ToggleEscapeMenu();
         }
@@ -19,6 +24,7 @@ public class UIManager : MonoBehaviour
             ToggleLevelUpMenu();
         }
     }
+
 
     public void ToggleEscapeMenu()
     {
