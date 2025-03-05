@@ -6,6 +6,7 @@ public class EnemyBase : MonoBehaviour
     
     protected int health;
     protected int experiencePoints;
+    protected int damage;
 
     public int GetHealth() => health;
     public int GetExperiencePoints() => experiencePoints;
@@ -51,7 +52,7 @@ public class EnemyBase : MonoBehaviour
             Player player = collision.gameObject.GetComponent<Player>();
             if (player != null)
             {
-                player.TakeDamage(50);
+                player.TakeDamage(damage);
             }
         }
     }

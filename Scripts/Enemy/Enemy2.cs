@@ -9,6 +9,7 @@ public class Enemy2 : EnemyBase
 
         health = 50;
         experiencePoints = 110;
+        damage = 50;
     }
 
     public override void TakeDamage(int damage)

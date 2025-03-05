@@ -8,7 +8,8 @@ public class Enemy1 : EnemyBase
         base.Start();
 
         health = 100;
-        experiencePoints = 50;
+        experiencePoints = 5000;
+        damage = 10;
     }
 
     public override void TakeDamage(int damage)
