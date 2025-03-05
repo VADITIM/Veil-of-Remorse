@@ -3,79 +3,77 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     public int maxHealth = 100;
-    [SerializeField] private int currentHealth;
-    
-    Movement Movement;
-    LevelSystem LevelSystem;
-    AbilityManager AbilityManager;
-    RespawnManager RespawnManager;
+    [SerializeField] public int currentHealth;
+
+    [SerializeField] Movement Movement;
+    [SerializeField] LevelSystem LevelSystem;
+    [SerializeField] AbilityManager AbilityManager;
+    [SerializeField] RespawnManager RespawnManager;
+    [SerializeField] HealthBar HealthBar;
     
     public bool damageTaken = false;
     public bool canTakeDamage = true;
 
+    public int GetCurrentHealth() { return currentHealth; }
+
     void Start()
     {
-        currentHealth = maxHealth;
         Movement = GetComponent<Movement>();
         LevelSystem = FindObjectOfType<LevelSystem>();
         AbilityManager = FindObjectOfType<AbilityManager>();
         RespawnManager = FindObjectOfType<RespawnManager>();
+        HealthBar = FindObjectOfType<HealthBar>();
+
+        currentHealth = maxHealth;
+        HealthBar.SetMaxHealth(maxHealth);
     }
     
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.F1))
-        {
-            SaveSystem.ResetSave();
-        }
-
-        if (Input.GetKeyDown(KeyCode.F2))
-        {
-            SaveSystem.SaveGame(Movement, LevelSystem, AbilityManager);
-        }
+        if (Input.GetKeyDown(KeyCode.F1)) { SaveSystem.ResetSave(); }
+        if (Input.GetKeyDown(KeyCode.F2)) { SaveSystem.SaveGame(Movement, LevelSystem, AbilityManager, this); }
     }
 
     public void TakeDamage(int amount)
     {
-        if (damageTaken) return;
-        if (!canTakeDamage) return;
-        damageTaken = true;
+        if (damageTaken || !canTakeDamage) return;
 
-        Debug.Log("Player took " + amount + " damage");
-        currentHealth -= amount;
+        currentHealth = Mathf.Max(0, currentHealth - amount);
+        HealthBar.SetHealth();
+
+        damageTaken = true;
+        Invoke(nameof(ResetDamageTaken), 0.7f);
+
         if (currentHealth <= 0)
         {
-            Debug.Log("Player died");
             Respawn();
         }
+    }
+
+    private void ResetDamageTaken()
+    {
+        damageTaken = false;
     }
 
     public void RestoreHealth()
     {
         currentHealth = maxHealth;
-        Debug.Log("Health Restored");
+        HealthBar.SetHealth();
     }
 
     private void Respawn()
     {
-        if (Movement != null)
+        PlayerData data = SaveSystem.LoadGame();
+
+        if (data != null)
         {
-            PlayerData data = SaveSystem.LoadGame();
-            if (data != null)
-            {
-                Movement.transform.position = new Vector3(data.checkpointX, data.checkpointY, 0);
-                RestoreHealth();
-                RespawnManager.RespawnAllEnemies();
-                Debug.Log("Respawned at last bonfire");
-            }
-            else
-            {
-                Debug.LogWarning("No save data found!");
-            }
+            RestoreHealth();
+            Movement.transform.position = new Vector3(data.checkpointX, data.checkpointY, data.checkpointZ);
+            LevelSystem.LoadSavedData(data);
+            AbilityManager.LoadSavedAbilities(data);
+            RespawnManager.RespawnAllEnemies();
+            Debug.Log("\nRespawned at last bonfire");
         }
-        else
-        {
-            Debug.LogError("Movement script not found on player object");
-        }
+        else Debug.LogWarning("\nNo save data found!");
     }
-} 
+}

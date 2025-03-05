@@ -4,27 +4,32 @@ using UnityEngine;
 
 public static class SaveSystem
 {
-    public static void SaveGame(Movement movement, LevelSystem levelSystem, AbilityManager abilityManager)
+    public static void SaveGame(Movement movement, LevelSystem levelSystem, AbilityManager abilityManager, Player player)
     {
         BinaryFormatter formatter = new BinaryFormatter();
         string path = Application.persistentDataPath + "/player.sav";
 
         FileStream stream = new FileStream(path, FileMode.Create);
 
-        try
+        try { PlayerData data = new PlayerData(movement, levelSystem, abilityManager, player); formatter.Serialize(stream, data); Debug.LogWarning("SAVED\n"); }
+        catch (System.Exception e) { Debug.LogError("Save Failed: " + e.Message); }
+        finally { stream.Close(); }
+    }
+
+    public static PlayerData LoadGame()
+    {
+        string path = Application.persistentDataPath + "/player.sav";
+
+        if (File.Exists(path))
         {
-            PlayerData data = new PlayerData(movement, levelSystem, abilityManager);
-            formatter.Serialize(stream, data);
-            Debug.LogWarning("SAVED");
+            BinaryFormatter formatter = new BinaryFormatter();
+            FileStream stream = new FileStream(path, FileMode.Open);
+
+            try { PlayerData data = formatter.Deserialize(stream) as PlayerData; return data; }
+            catch (System.Exception e) { Debug.LogError("Load Failed: " + e.Message); return null; }
+            finally { stream.Close(); }
         }
-        catch (System.Exception e)
-        {
-            Debug.LogError("Save Failed: " + e.Message);
-        }
-        finally
-        {
-            stream.Close();
-        }
+        else return null;
     }
 
     public static void SaveBool(string key, bool value)
@@ -53,42 +58,8 @@ public static class SaveSystem
             ResetBool("AbilityOneUnlocked");
             ResetBool("AbilityTwoUnlocked");
             ResetBool("AbilityThreeUnlocked");
-            Debug.LogWarning("SAVE DATA RESET");
+            Debug.LogWarning("SAVE DATA RESET\n");
         }
-        else
-        {
-            Debug.LogWarning("No save data to reset.");
-        }
-    }
-
-    public static PlayerData LoadGame()
-    {
-        string path = Application.persistentDataPath + "/player.sav";
-
-        if (File.Exists(path))
-        {
-            BinaryFormatter formatter = new BinaryFormatter();
-            FileStream stream = new FileStream(path, FileMode.Open);
-
-            try
-            {
-                PlayerData data = formatter.Deserialize(stream) as PlayerData;
-                return data;
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError("Load Failed: " + e.Message);
-                return null;
-            }
-            finally
-            {
-                stream.Close();
-            }
-        }
-        else
-        {
-            Debug.LogWarning("No Save File Found");
-            return null;
-        }
+        else Debug.LogWarning("No save data to reset.");
     }
 }
