@@ -44,7 +44,7 @@ public class Dodge : MonoBehaviour
         
         if (Input.GetKey(KeyCode.Space) && !isDodging && canDodge)
         {
-            if (!Movement.isMoving) return;
+            if (!Movement.IsMoving()) return;
             if (Attack.IsAttacking(attacking: true)) return;
 
             isDodging = true;

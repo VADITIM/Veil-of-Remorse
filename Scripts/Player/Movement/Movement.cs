@@ -40,6 +40,8 @@ public class Movement : MonoBehaviour
         {
             rb.velocity = movement * speed;
         }
+
+        transform.position = new Vector3(transform.position.x, transform.position.y, -1f);
     }
 
     public bool IsMoving()
