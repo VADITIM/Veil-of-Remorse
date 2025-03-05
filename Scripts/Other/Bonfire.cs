@@ -6,6 +6,8 @@ public class Bonfire : MonoBehaviour
     private LevelSystem LevelSystem;
     private AbilityManager AbilityManager;
     private RespawnManager RespawnManager;
+    private Player Player;
+    private Hotkeys Hotkeys;
     
     public bool playerNearby = false;
 
@@ -15,12 +17,22 @@ public class Bonfire : MonoBehaviour
         LevelSystem = FindObjectOfType<LevelSystem>();
         AbilityManager = FindObjectOfType<AbilityManager>();
         RespawnManager = FindObjectOfType<RespawnManager>();
+        Player = FindObjectOfType<Player>();
+        Hotkeys = FindObjectOfType<Hotkeys>();
     }
 
+    void Update()
+    {
+        if (playerNearby && Hotkeys.HandleInteract())
+        {
+            RespawnManager.RespawnAllEnemies();
+            SaveSystem.SaveGame(Movement, LevelSystem, AbilityManager, Player);
+            FindObjectOfType<Player>().RestoreHealth();
+        }
+    }
     void OnTriggerEnter2D(Collider2D other)
     {
-            playerNearby = true;
-            Debug.Log("Bonfire discovered");
+        playerNearby = true;
     }
 
     void OnTriggerExit2D(Collider2D other)
@@ -28,17 +40,6 @@ public class Bonfire : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             playerNearby = false;
-        }
-    }
-
-    void Update()
-    {
-        if (playerNearby && Input.GetKeyDown(KeyCode.F))
-        {
-            Debug.Log("Resting at Bonfire");
-            RespawnManager.RespawnAllEnemies();
-            SaveSystem.SaveGame(Movement, LevelSystem, AbilityManager);
-            FindObjectOfType<Player>().RestoreHealth(); // Optional healing system
         }
     }
 }
