@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Bonfire : MonoBehaviour
+public class DivinePoint : MonoBehaviour
 {
     private Movement Movement;
     private LevelSystem LevelSystem;
@@ -8,8 +8,10 @@ public class Bonfire : MonoBehaviour
     private RespawnManager RespawnManager;
     private Player Player;
     private Hotkeys Hotkeys;
-    
+    private UIManager UIManager;
+
     public bool playerNearby = false;
+    public bool isPaused = false;
 
     void Start()
     {
@@ -19,27 +21,39 @@ public class Bonfire : MonoBehaviour
         RespawnManager = FindObjectOfType<RespawnManager>();
         Player = FindObjectOfType<Player>();
         Hotkeys = FindObjectOfType<Hotkeys>();
+        UIManager = FindObjectOfType<UIManager>();
     }
 
     void Update()
     {
-        if (playerNearby && Hotkeys.HandleInteract())
+        if (playerNearby && !isPaused && Hotkeys.HandleInteract())
         {
-            RespawnManager.RespawnAllEnemies();
             SaveSystem.SaveGame(Movement, LevelSystem, AbilityManager, Player);
-            FindObjectOfType<Player>().RestoreHealth();
+            UIManager.ToggleDivinePointMenu();
+            TogglePause();
         }
     }
+
     void OnTriggerEnter2D(Collider2D other)
     {
-        playerNearby = true;
+        if (other.CompareTag("Player"))
+            playerNearby = true;
     }
 
     void OnTriggerExit2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
-        {
             playerNearby = false;
-        }
+    }
+
+    public void TogglePause()
+    {
+        isPaused = !isPaused;
+    }
+
+    public void RestorePlayer()
+    {
+        Player.RestoreHealth();
+        RespawnManager.RespawnAllEnemies();
     }
 }
