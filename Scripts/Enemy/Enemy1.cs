@@ -7,7 +7,7 @@ public class Enemy1 : EnemyBase
     {
         base.Start();
 
-        health = 100;
+        health = 10;
         experiencePoints = 5000;
         damage = 10;
     }
@@ -17,7 +17,7 @@ public class Enemy1 : EnemyBase
         base.TakeDamage(damage);
     }
 
-    protected override void Die()
+    public override void Die()
     {
         base.Die();
     }
