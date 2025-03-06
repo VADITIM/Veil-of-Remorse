@@ -1,38 +1,47 @@
 using UnityEngine;
+using TMPro;
 
 public class UIManager : MonoBehaviour
 {
     Hotkeys Hotkeys;
-    
+
     [SerializeField] private GameObject escapeMenu;
-    [SerializeField] private GameObject levelUpMenu;
-    
+    [SerializeField] private GameObject offerEssenceMenu;
+    [SerializeField] private GameObject divinePointMenu;
+    [SerializeField] private TextMeshProUGUI essenceText;
+
+    private DivinePoint divinePoint;
+    private LevelSystem levelSystem;
+
     void Start()
     {
         Hotkeys = FindObjectOfType<Hotkeys>();
+        divinePoint = FindObjectOfType<DivinePoint>();
+        levelSystem = FindObjectOfType<LevelSystem>();
+        UpdateEssenceText();
     }
 
     void Update()
     {
-        if (Hotkeys.HandleEscMenu())
+        if (Hotkeys.HandleEscMenu() && !divinePoint.isPaused)
         {
             ToggleEscapeMenu();
         }
-
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            ToggleLevelUpMenu();
-        }
     }
 
+    public void ToggleEscapeMenu() { escapeMenu.SetActive(!escapeMenu.activeSelf); }
 
-    public void ToggleEscapeMenu()
-    {
-        escapeMenu.SetActive(!escapeMenu.activeSelf);
-    }
+    public void ToggleDivinePointMenu() { divinePointMenu.SetActive(!divinePointMenu.activeSelf); }
 
-    public void ToggleLevelUpMenu()
+    public void TogglePause() { divinePoint.TogglePause(); }
+
+    public void RestorePlayer() { divinePoint.RestorePlayer(); }
+
+    public void ToggleOfferEssenceMenu() { offerEssenceMenu.SetActive(!offerEssenceMenu.activeSelf); }
+
+    public void UpdateEssenceText()
     {
-        levelUpMenu.SetActive(!levelUpMenu.activeSelf);
+        if (essenceText == null) return;
+        essenceText.text = "Essence: " + levelSystem.GetEssence().ToString();
     }
 }

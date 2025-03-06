@@ -1,75 +1,112 @@
 using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
+using System.Collections.Generic;
 
 public class AbilityManager : MonoBehaviour
 {
+    Movement Movement;
+    Player Player;
     LevelSystem LevelSystem;
-    
-    [SerializeField] private GameObject abilityOne;
-    [SerializeField] private GameObject abilityTwo;
-    [SerializeField] private GameObject abilityThree;
-    
-    public bool abilityOneUnlocked = false;
-    public bool abilityTwoUnlocked = false;
-    public bool abilityThreeUnlocked = false;
-    
+
+    [SerializeField] private List<Ability> abilities = new List<Ability>();
+    public Dictionary<string, bool> unlockedAbilities = new Dictionary<string, bool>();
+
     void Start()
     {
+        Movement = FindObjectOfType<Movement>();
+        Player = FindObjectOfType<Player>();
         LevelSystem = FindObjectOfType<LevelSystem>();
-        
-        abilityOneUnlocked = SaveSystem.LoadBool("AbilityOneUnlocked");
-        abilityTwoUnlocked = SaveSystem.LoadBool("AbilityTwoUnlocked");
-        abilityThreeUnlocked = SaveSystem.LoadBool("AbilityThreeUnlocked");
 
+        LoadSavedAbilities(SaveSystem.LoadGame());
         UpdateAbilityStates();
     }
 
-    void Update()
+    public void UnlockAbility(string abilityID)
     {
-        UpdateAbilityStates();
-    }
-    
-    public void LoadSavedAbilities(PlayerData data)
-    {
-        abilityOneUnlocked = data.abilityOneUnlocked;
-        abilityTwoUnlocked = data.abilityTwoUnlocked;
-        abilityThreeUnlocked = data.abilityThreeUnlocked;
+        Ability ability = abilities.Find(a => a.ID == abilityID);
+        if (ability == null)
+        {
+            Debug.LogError("Ability not found: " + abilityID);
+            return;
+        }
 
+        if (LevelSystem.GetEssence() < ability.requiredEssence)
+        {
+            Debug.Log("Not enough essence.");
+            return;
+        }
+
+        LevelSystem.UseEssence(ability.requiredEssence);
+        unlockedAbilities[abilityID] = true;
+        SaveUnlockedAbilities();
         UpdateAbilityStates();
-        Debug.Log("\nAbilities reset to last save state.");
+
+        // Disable and fade the button
+        StartCoroutine(FadeOutButton(ability.abilityButton));
     }
 
     private void UpdateAbilityStates()
     {
-        if (abilityOneUnlocked)
+        foreach (Ability ability in abilities)
         {
-            abilityOne.SetActive(false);
-        }
-        if (abilityTwoUnlocked)
-        {
-            abilityTwo.SetActive(false);
-        }
-        if (abilityThreeUnlocked)
-        {
-            abilityThree.SetActive(false);
+            if (unlockedAbilities.ContainsKey(ability.ID) && unlockedAbilities[ability.ID])
+            {
+                ability.abilityButton.interactable = false; // Disable interaction
+                StartCoroutine(FadeOutButton(ability.abilityButton)); // Fade out
+            }
         }
     }
 
-    public void UnlockAbilityOne()
+    private IEnumerator FadeOutButton(Button button)
     {
-        abilityOneUnlocked = true;
-        SaveSystem.SaveBool("AbilityOneUnlocked", true);
+        Image buttonImage = button.GetComponent<Image>();
+        if (buttonImage == null) yield break;
+
+        float duration = 0.5f;
+        float elapsedTime = 0f;
+        Color startColor = buttonImage.color;
+        Color endColor = new Color(startColor.r, startColor.g, startColor.b, 0.3f); // 30% visibility
+
+        button.interactable = false; // Disable clicking
+
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            buttonImage.color = Color.Lerp(startColor, endColor, elapsedTime / duration);
+            yield return null;
+        }
     }
 
-    public void UnlockAbilityTwo()
+    public void LoadSavedAbilities(PlayerData data)
     {
-        abilityTwoUnlocked = true;
-        SaveSystem.SaveBool("AbilityTwoUnlocked", true);
+        unlockedAbilities.Clear();
+        foreach (string abilityID in data.unlockedAbilities)
+        {
+            unlockedAbilities[abilityID] = true;
+        }
+        UpdateAbilityStates();
     }
 
-    public void UnlockAbilityThree()
+    private void SaveUnlockedAbilities()
     {
-        abilityThreeUnlocked = true;
-        SaveSystem.SaveBool("AbilityThreeUnlocked", true);
+        foreach (var ability in unlockedAbilities)
+        {
+            SaveSystem.SaveBool(ability.Key, ability.Value);
+        }
+        SaveSystem.SaveGame(Movement, LevelSystem, this, Player);
     }
 
+    public bool IsAbilityUnlocked(string abilityID)
+    {
+        return unlockedAbilities.ContainsKey(abilityID) && unlockedAbilities[abilityID];
+    }
+}
+
+[System.Serializable]
+public class Ability
+{
+    public string ID;
+    public Button abilityButton; // Button component instead of GameObject
+    public int requiredEssence;
 }
