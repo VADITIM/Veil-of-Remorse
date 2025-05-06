@@ -5,7 +5,7 @@ public class EnemyStateMachine : MonoBehaviour
 
     EnemyBase EnemyBase;
 
-    [SerializeField] private Animator animator;
+    [SerializeField] public Animator animator;
     [SerializeField] private SpriteRenderer spriteRenderer;
 
     private bool facingRight = true;
@@ -14,11 +14,21 @@ public class EnemyStateMachine : MonoBehaviour
 
     private readonly string isMovingParam = "isMoving";
     private readonly string isAttackingParam = "isAttacking";
+    private readonly string isDamagedParam = "isDamaged";
+    private readonly string isDeadParam = "isDead";
+
+    public void SetAttacking(bool isAttacking)
+    {
+        EnemyBase.isAttacking = isAttacking;
+        animator.SetBool(isAttackingParam, isAttacking);
+    }
 
     private void HandleAnimator()
     {
         animator.SetBool(isMovingParam, EnemyBase.IsMoving());
         animator.SetBool(isAttackingParam, EnemyBase.IsAttacking());
+        animator.SetBool(isDamagedParam, EnemyBase.IsDamaged());
+        animator.SetBool(isDeadParam, EnemyBase.IsDead());
     }
 
     void Start()

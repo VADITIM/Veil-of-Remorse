@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class LevelSystem : MonoBehaviour
 {
-    UIManager UIManager;
+    [SerializeField] LevelUpPopup LevelUpPopup;
+    [SerializeField] GameObject LevelUpPopupObject;
     
     private int level = 1;
     private int essence = 0;
@@ -11,6 +12,7 @@ public class LevelSystem : MonoBehaviour
     
     public int Level => level;
     public int ExperienceToNextLevel => experienceToNextLevel;
+    [SerializeField] private GameObject HUD;
     
     public int GetEssence() { return essence; }
     public int GetExperience() { return experience; }
@@ -18,16 +20,19 @@ public class LevelSystem : MonoBehaviour
 
     void Start()
     {
-        UIManager = FindObjectOfType<UIManager>();
+        LevelUpPopup = FindObjectOfType<LevelUpPopup>();
+        LevelUpPopupObject = FindObjectOfType<LevelUpPopup>().gameObject;
+        LevelUpPopupObject.SetActive(false);
+        
 
         SaveData();
         experienceToNextLevel = level * 100;
-        UIManager.UpdateEssenceText();
+        ClassManager.Instance.UIManager.UpdateEssenceText();
     }
 
     void Update()
     {
-        ShowLevel();
+        // ShowLevel();
     }
 
     public void GainExperience(int amount)
@@ -37,6 +42,7 @@ public class LevelSystem : MonoBehaviour
         while (experience >= experienceToNextLevel)
         {
             LevelUp();
+            LevelUpPopup.ShowLevelUpPopup();
         }
     }
     
@@ -47,7 +53,7 @@ public class LevelSystem : MonoBehaviour
         experience -= experienceToNextLevel;
         experienceToNextLevel = level * 100;
         Debug.Log("\nLEVELED UP: " + Level);
-        UIManager.UpdateEssenceText();
+        ClassManager.Instance.UIManager.UpdateEssenceText();
     }
 
     public void UseEssence(int amount)
@@ -55,13 +61,34 @@ public class LevelSystem : MonoBehaviour
         if (essence >= amount)
         {
             essence -= amount;
-            UIManager.UpdateEssenceText();
+            ClassManager.Instance.UIManager.UpdateEssenceText();
         }
-        else
-        {
-            Debug.Log("Not enough essence to use.");
-        }
+        // else { Debug.Log("Not enough essence to use."); }
     }
+
+    public void KindlePower(int requiredEssence)
+    {
+        if (essence >= requiredEssence)
+        {
+            essence -= requiredEssence;
+            
+            HUD.SetActive(true);
+            ClassManager.Instance.PlayerBar.UpgradePlayerBar();
+            
+            ClassManager.Instance.Player.IncreaseMaxHealth(50);
+            ClassManager.Instance.Player.IncreaseMaxStamina(10);
+            ClassManager.Instance.Health.SetHealth();
+            ClassManager.Instance.Stamina.SetStamina();
+            HUD.SetActive(false);
+            
+            SaveSystem.SaveGame(ClassManager.Instance.Movement, this, ClassManager.Instance.SkillTreeManager, ClassManager.Instance.Player, SoundManager.Instance);
+            
+            ClassManager.Instance.UIManager.UpdateEssenceText();
+        }
+        // else { Debug.Log("Not enough essence to kindle power."); }
+    }
+
+    
 
     private void SaveData()
     {
@@ -73,6 +100,7 @@ public class LevelSystem : MonoBehaviour
             experience = data.experience;
             experienceToNextLevel = data.experienceToNextLevel; 
             transform.position = new Vector3(data.checkpointX, data.checkpointY, data.checkpointZ);
+            
         }
     }
 
@@ -82,8 +110,19 @@ public class LevelSystem : MonoBehaviour
         essence = data.essence;
         experience = data.experience;
         experienceToNextLevel = data.experienceToNextLevel;
-        
-        Debug.Log($"\nLevel, Essence, and XP reset to last save: Level {level}, Essence {essence}, XP {experience}.");
+    
+        Player player = FindObjectOfType<Player>();
+        player.maxHealth = data.maxHealth;
+        player.currentHealth = data.currentHealth;
+        ClassManager.Instance.Health.SetMaxHealth(player.maxHealth);
+        ClassManager.Instance.Health.SetHealth();
+
+        player.maxStamina = data.maxStamina;
+        player.currentStamina = data.currentStamina;
+        ClassManager.Instance.Stamina.SetMaxStamina(player.maxStamina);
+        ClassManager.Instance.Stamina.SetStamina();
+
+        ClassManager.Instance.PlayerBar.SetPlayerBarLevel(data.playerBarLevel);
     }
 
     private void ShowLevel()

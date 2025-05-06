@@ -2,21 +2,25 @@ using UnityEngine;
 
 public class AttackStateMachine : MonoBehaviour
 {
-    [SerializeField] Attack Attack;
+    [SerializeField] AttackLogic Attack;
     [SerializeField] private Animator attackAnimator;
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private Camera mainCamera;
 
     private Vector2 lookDirection;
-    private readonly string isNormalAttacking1Param = "isNormalAttacking1";
-    private readonly string isNormalAttacking2Param = "isNormalAttacking2";
-    private readonly string isNormalAttacking3Param = "isNormalAttacking3";
 
-    private void HandleAnimator()
+    public readonly string isNormalAttacking1Param = "isNormalAttacking1";
+    public readonly string isNormalAttacking2Param = "isNormalAttacking2";
+    public readonly string isNormalAttacking3Param = "isNormalAttacking3";
+
+    private readonly string isHeavyAttackingParam = "isHeavyAttacking";
+
+    private void HandleAttackAnimator()
     {
         attackAnimator.SetBool(isNormalAttacking1Param, Attack.isNormalAttacking1);
         attackAnimator.SetBool(isNormalAttacking2Param, Attack.isNormalAttacking2);
         attackAnimator.SetBool(isNormalAttacking3Param, Attack.isNormalAttacking3);
+        attackAnimator.SetBool(isHeavyAttackingParam, Attack.isHeavyAttacking);
 
         if (Attack.IsInBufferPeriod)
         {
@@ -30,17 +34,12 @@ public class AttackStateMachine : MonoBehaviour
             }
         }
     }
-    
-    void Start()
-    {
-        mainCamera = Camera.main;
-    }
 
     void Update()
     {
         HandleMouseDirection();
         HandleAttackRotation();
-        HandleAnimator();
+        HandleAttackAnimator();
     }
 
     private void HandleMouseDirection()
@@ -55,4 +54,10 @@ public class AttackStateMachine : MonoBehaviour
         float angle = Mathf.Atan2(lookDirection.y, lookDirection.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0f, 0f, angle - 70f);
     }
+
+    public Vector2 GetLookDirection()
+    {
+        return lookDirection;
+    }
+
 }

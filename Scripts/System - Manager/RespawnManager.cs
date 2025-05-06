@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
+    
+// AI GENERATED
 
 public class RespawnManager : MonoBehaviour
 {
@@ -62,10 +64,10 @@ public class RespawnManager : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            RespawnAllEnemies();
-        }
+        // if (Input.GetKeyDown(KeyCode.R))
+        // {
+        //     RespawnAllEnemies();
+        // }
     }
     
     public void RegisterEnemy(EnemyBase enemy)
@@ -105,7 +107,7 @@ public class RespawnManager : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogWarning($"No prefab found for {enemy.name}. Assign prefabs in RespawnManager.");
+                    Debug.LogWarning($"No prefab found: {enemy.name}");
                 }
             }
         }

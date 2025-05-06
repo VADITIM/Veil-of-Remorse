@@ -1,83 +1,137 @@
 using UnityEngine;
-using System.Collections.Generic; 
+using System.Collections;
 
 public class EnemyBase : MonoBehaviour
 {
     public LevelSystem LevelSystem;
-    public AIData aiData; 
-    public float maxSpeed = 3f; 
+    private XPPopupManager XPPopupManager;
+    public float speed = 2f; 
 
-    protected int health;
-    protected int experiencePoints;
+    [SerializeField] protected int health;
+    [SerializeField] protected int experiencePoints;
     protected int damage;
     public bool isMoving;
     public bool isAttacking;
+    public bool isDamaged;
+    public bool isDead;
+    private float immuneTime = 0.15f;
+    
+    private SpriteRenderer spriteRenderer;
+    private Coroutine flashCoroutine;
 
-    private Rigidbody2D rb; 
+    public float windupTime;
+    public float attackDuration;
+
+    public Rigidbody2D rb; 
 
     public int GetHealth() => health;
     public int GetExperiencePoints() => experiencePoints;
 
+    protected virtual void Attack() { isAttacking = true; }
+    public bool IsAttacking() { return isAttacking; }
+    public bool IsMoving() { return isMoving; }
+    public bool IsDamaged() { return isDamaged; }
+    public bool IsDead() { return isDead; }
+
     protected virtual void Start()
     {
         LevelSystem = FindObjectOfType<LevelSystem>();
-        RespawnManager.Instance.RegisterEnemy(this);
+        XPPopupManager = FindObjectOfType<XPPopupManager>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+
         rb = GetComponent<Rigidbody2D>();
-        rb = gameObject.AddComponent<Rigidbody2D>(); 
-        rb.gravityScale = 0; 
-        rb.constraints = RigidbodyConstraints2D.FreezeRotation; 
-        aiData.obstacles = new List<Transform>();
+        if (rb == null)
+        {
+            rb.bodyType = RigidbodyType2D.Dynamic;
+            rb = gameObject.AddComponent<Rigidbody2D>();
+            rb.gravityScale = 0;
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        }
+
+        RespawnManager.Instance.RegisterEnemy(this);
     }
 
     protected virtual void Update()
     {
         isMoving = rb.velocity.magnitude > 0;
-    }
 
-    protected virtual void Attack()
-    {
-        isAttacking = true;
+        if (isDamaged)
+        {
+            immuneTime -= Time.deltaTime;
+            if (immuneTime <= 0)
+            {
+                isDamaged = false;
+                immuneTime = 0.15f;
+            }
+        }
     }
 
     public void Move(Vector2 direction)
     {
-        rb.velocity = direction * maxSpeed;
+        rb.velocity = direction * speed;
     }
     
     public virtual void TakeDamage(int damage)
     {
         health -= damage;
+        isDamaged = true;
+
+        if (flashCoroutine != null)
+            StopCoroutine(flashCoroutine);
+        flashCoroutine = StartCoroutine(FlashEffect());
+        
+        StartCoroutine(ResetBool(isDamaged, .3f));
 
         if (health > 0) return;
         Die();
     }
 
-    public virtual void Die()
+    private IEnumerator FlashEffect()
     {
-        if (RespawnManager.Instance != null)
+        if (spriteRenderer == null) 
+            spriteRenderer = GetComponent<SpriteRenderer>();
+            
+        Color originalColor = spriteRenderer.color;
+        float flashDuration = 0.5f;
+        float elapsed = 0f;
+        
+        while (elapsed < flashDuration)
         {
-            RespawnManager.Instance.SaveEnemyValues(this);
+            spriteRenderer.color = Color.Lerp(Color.red, Color.white, Mathf.PingPong(elapsed * 10, 1));
+            elapsed += Time.deltaTime;
+            yield return null;
         }
-        Destroy(gameObject);
-        if (LevelSystem != null)
-        {
-            LevelSystem.GainExperience(experiencePoints);
-        }
+        
+        spriteRenderer.color = Color.white;
     }
 
-    public bool IsMoving()
+    private IEnumerator ResetBool(bool value, float time)
     {
-        return isMoving;
+        yield return new WaitForSeconds(time);
+        value = false;
     }
-    
-    public bool IsAttacking()
+
+    public virtual void Die()
     {
-        return isAttacking;
+        if (flashCoroutine != null)
+            StopCoroutine(flashCoroutine);
+            
+        RespawnManager.Instance.SaveEnemyValues(this);
+
+        Destroy(gameObject);
+        isDead = true;
+
+        if (ClassManager.Instance.AttackLogic.IsAttacking(true))
+            XPPopupManager.ShowXPPopup(transform.position, experiencePoints);
+            LevelSystem.GainExperience(experiencePoints);
     }
 
     public virtual void SetInitialValues(int newHealth, int newExp)
     {
-        health = newHealth;
+        if (health == 0)
+        {
+            health = newHealth;
+        }
         experiencePoints = newExp;
     }
 
@@ -88,7 +142,7 @@ public class EnemyBase : MonoBehaviour
             Player player = collision.gameObject.GetComponent<Player>();
             if (player != null)
             {
-                player.TakeDamage(damage);
+                player.TakeDamage(damage / 2);
             }
         }
     }

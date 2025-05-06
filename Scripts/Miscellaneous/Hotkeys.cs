@@ -2,6 +2,13 @@ using UnityEngine;
 
 public class Hotkeys : MonoBehaviour
 {
+    SoundManager SoundManager;
+
+    void Start()
+    {
+        SoundManager = FindObjectOfType<SoundManager>();
+    }
+    
     public bool HandleInteract()
     {
         if (Input.GetKeyDown(KeyCode.E))
